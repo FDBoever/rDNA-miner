@@ -1,0 +1,34 @@
+name: rdna-miner
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip
+  - typer
+  - pandas
+  - biopython
+  - numpy
+
+  # bioinf
+  - barrnap
+  - flye
+  - minimap2
+  - samtools
+
+  # R
+  - r-base
+  #- r-decipher
+  #- r-optparse
+  #- r-data.table
+
+  #utils
+  - seqkit
+  - pigz
+
+  # pip installs
+  - pip:
+      - rich

@@ -1,0 +1,146 @@
+from pathlib import Path
+from typing import Dict, Union, List
+import logging
+
+from rdna_miner.utils.fasta import load_fasta_or_convert
+
+ArtifactType = Union[Path, List[Path]]
+
+class Context:
+
+    SUBDIRS = {
+        "summary": "summary",
+        "reads": "reads",
+        "assembly": "assembly",
+        "taxonomy": "taxonomy",
+        "mapping": "mapping",
+        "figures": "figures"
+    }
+
+    def __init__(self, input_file: Path, output_dir: Path, force: bool = False):
+        self.input_file = Path(input_file)
+        self.output_dir = Path(output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        self.force = force
+        self.artifacts: Dict[str, object] = {}  # Now can store any object
+
+        self.logger = logging.getLogger("rdna-miner")
+        if not self.logger.handlers:
+            logging.basicConfig(
+                level=logging.INFO,
+                format="%(asctime)s | %(levelname)s | %(message)s"
+            )
+
+        # Create canonical fasta
+        self.fasta = load_fasta_or_convert(self.input_file, self.output_dir)
+        self.register("fasta", self.fasta)
+
+        # Register original input fasta
+        self.register("input_fasta", self.input_file)
+
+    # ---------------- Artifact Registration ----------------
+
+    def register(self, name: str, value):
+        """Register an artifact or runtime value. Accepts paths, lists, bools, or any object."""
+        if isinstance(value, (list, tuple)):
+            self.artifacts[name] = [Path(p) if not isinstance(p, Path) else p for p in value]
+        elif isinstance(value, Path):
+            self.artifacts[name] = value
+        else:
+            self.artifacts[name] = value  # can be bool, str, or any object
+
+    def get(self, name: str):
+        if name not in self.artifacts:
+            raise ValueError(f"Artifact '{name}' not registered.")
+        return self.artifacts[name]
+
+    def require(self, name: str):
+        artifact = self.get(name)
+
+        if isinstance(artifact, list):
+            for p in artifact:
+                if not isinstance(p, Path) or not p.exists():
+                    raise FileNotFoundError(p)
+        elif isinstance(artifact, Path):
+            if not artifact.exists():
+                raise FileNotFoundError(artifact)
+
+        return artifact
+
+    # ---------------- Artifact Paths ----------------
+
+    def artifact_path(self, name: str, subdir: str = None, suffix: str = None) -> Path:
+        base = self.fasta.stem
+        suffix = suffix or ".dat"
+
+        path = self.output_dir
+        if subdir:
+            path = path / subdir
+            path.mkdir(parents=True, exist_ok=True)
+
+        return path / f"{base}_{name}{suffix}"
+
+    def artifact(self, name: str, subdir: str = None, suffix: str = None) -> Path:
+        path = self.artifact_path(name, subdir, suffix)
+        self.register(name, path)
+        return path
+
+    # ---------------- Existence Checks ----------------
+
+    def exists(self, name: str) -> bool:
+        if self.force:
+            return False
+
+        artifact = self.artifacts.get(name)
+        if artifact is None:
+            return False
+
+        if isinstance(artifact, list):
+            return all(isinstance(p, Path) and p.exists() for p in artifact)
+        elif isinstance(artifact, Path):
+            return artifact.exists()
+
+        # For non-path artifacts (like flags), existence is True if registered
+        return True
+
+    def artifact_exists_or_skip(self, name: str) -> bool:
+        if name not in self.artifacts:
+            return False
+
+        exists = self.exists(name)
+        if exists:
+            self.logger.info(f"Skipping '{name}' (artifact exists: {self.artifacts[name]})")
+        return exists
+
+    # ---------------- Logging ----------------
+
+    def log_step(self, name: str):
+        self.logger.info("")
+        self.logger.info(f"========== {name} ==========")
+
+    def log(self, message: str):
+        self.logger.info(message)
+
+    # ---------------- Pipeline Helpers ----------------
+
+    def terminate_pipeline(self, reason: str):
+        """Set a flag to terminate the pipeline early and log reason."""
+        self.log(f"Pipeline terminated early: {reason}")
+        self.register("pipeline_terminated_early", True)
+
+
+# ---------------- Database Context ----------------
+
+class DBContext:
+    def __init__(self, db_path: Path):
+        self.output_dir = db_path.parent
+        self.artifacts: Dict[str, object] = {"database": db_path}
+
+    def register(self, name: str, value):
+        self.artifacts[name] = value
+
+    def get(self, name: str):
+        if name not in self.artifacts:
+            raise ValueError(f"Artifact '{name}' not registered.")
+        return self.artifacts[name]
