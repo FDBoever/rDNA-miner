@@ -16,17 +16,13 @@ def gff_has_records(gff_file: Path) -> bool:
 def run(ctx):
     ctx.log_step("Run Barrnap")
 
-    if ctx.exists("barrnap_combined"):
-        ctx.log("Barrnap combined GFF exists — skipping.")
-        return
-
-    outdir = ctx.output_dir / "barrnap"
-    outdir.mkdir(parents=True, exist_ok=True)
-
     bac_gff = ctx.artifact("barrnap_bac", "barrnap", ".gff")
     euk_gff = ctx.artifact("barrnap_euk", "barrnap", ".gff")
     combined_gff = ctx.artifact("barrnap_combined", "barrnap", ".gff")
 
+    if ctx.artifact_exists_or_skip("barrnap_combined"):
+        return
+    
     ctx.log(f"Running Barrnap for bacteria: {ctx.fasta} -> {bac_gff}")
     run_command(f"barrnap --kingdom bac --threads {ctx.threads} {ctx.fasta} --reject 0.2 > {bac_gff}")
 

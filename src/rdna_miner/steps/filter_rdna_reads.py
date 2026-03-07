@@ -24,7 +24,10 @@ def filter_fasta(input_fasta, output_fasta, read_ids):
 def run(ctx):
     ctx.log_step("Filter rDNA reads")
     filtered = ctx.artifact("rdna_reads", "reads", ".fasta")
-    if ctx.exists("rdna_reads"):
+    #if ctx.exists("rdna_reads"):
+    #    return
+    
+    if ctx.artifact_exists_or_skip("rdna_reads"):
         return
 
     input_fasta = ctx.require("input_fasta")

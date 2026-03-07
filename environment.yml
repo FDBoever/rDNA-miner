@@ -18,11 +18,12 @@ dependencies:
   - flye
   - minimap2
   - samtools
+  - infernal
 
   # R
   - r-base
-  #- r-decipher
-  #- r-optparse
+  - bioconductor-decipher
+  - r-dplyr
   #- r-data.table
 
   #utils

@@ -1,14 +1,16 @@
+# src/rdna_miner/steps/cmscan.py
 import os
 import tempfile
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from Bio import SeqIO
 from rdna_miner.utils.cmd import run_command
 
 def _cmscan_cmd(input_file, tblout, clanin, cm):
     return (
         f'cmscan --cpu 1 -Z 5.874406 --cut_ga --rfam --nohmmonly '
-        f'--tblout "{tblout}" --fmt 2 --clanin "{clanin}" "{cm}" "{input_file}"')
+        f'--tblout "{tblout}" --fmt 2 --clanin "{clanin}" "{cm}" "{input_file}"'
+    )
 
 def _split_fasta(in_fa, out_dir, n_parts):
     records = list(SeqIO.parse(in_fa, "fasta"))
@@ -28,22 +30,23 @@ def _split_fasta(in_fa, out_dir, n_parts):
         shards.append(shard_path)
     return shards
 
-def run(ctx):
+def run(ctx, rfam_cm: Path, rfam_clanin: Path):
+    """
+    Run cmscan on the rDNA assembly.
+    Requires explicit paths to Rfam database files.
+    """
     ctx.log_step("Run cmscan (Rfam annotation)")
 
     assembly_fasta = ctx.require("assembly")
     cm_out = ctx.artifact("cm_out", "cm", "")
-    os.makedirs(cm_out, exist_ok=True)
+    final_tblout = ctx.artifact("cmscan_tblout", "cm", ".tblout")
 
-    rfam_clanin = os.path.join(ctx.db_dir, "Rfam.clanin")
-    rfam_cm = os.path.join(ctx.db_dir, "Rfam.cm")
-
-    final_tblout = os.path.join(cm_out, f"{Path(assembly_fasta).stem}.cmscan.tblout")
-
-    if ctx.exists("cm_out"):
+    if ctx.artifact_exists_or_skip("cmscan_tblout"):
         return
 
+    os.makedirs(cm_out, exist_ok=True)
     threads = ctx.threads
+
     if threads > 1:
         with tempfile.TemporaryDirectory(dir=cm_out) as tmpd:
             shards = _split_fasta(assembly_fasta, tmpd, threads)
@@ -64,6 +67,7 @@ def run(ctx):
                     for i, tf in enumerate(tblouts):
                         with open(tf) as fh:
                             for line in fh:
+                                # skip header lines for all but the first shard
                                 if line.startswith("#") and i > 0:
                                     continue
                                 out.write(line)
@@ -74,4 +78,3 @@ def run(ctx):
         )
 
     ctx.register("cm_out", cm_out)
-    ctx.register("cmscan_tblout", final_tblout)

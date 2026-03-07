@@ -56,20 +56,41 @@ def build_combined_ssu(cm_out, assembly_fasta, combined_file):
 def run(ctx):
     ctx.log_step("Annotate rDNA operons with Rfam/CMSCAN")
 
+    # Get resolved Rfam database files via DatabaseManager
+    rfam_files = ctx.db_manager.get_db("rfam")
+    # get_db now returns a list of resolved files (CM and CLANIN)
+    if isinstance(rfam_files, list):
+        # pick CM and CLANIN based on suffix
+        rfam_cm = next(f for f in rfam_files if f.suffix == ".cm")
+        rfam_clanin = next(f for f in rfam_files if "clanin" in f.name.lower())
+    else:
+        # fallback if single file returned (shouldn't happen for Rfam)
+        raise RuntimeError(f"Unexpected single file returned for Rfam database: {rfam_files}")
+
     assembly_fasta = ctx.require("assembly")
     cm_out = ctx.artifact("cm_out", "cm", "")
+    combined_file = ctx.artifact("combined_SSU", "cm", ".fasta")
+
+    if ctx.artifact_exists_or_skip("combined_SSU"):
+        return
+
     os.makedirs(cm_out, exist_ok=True)
 
-    # Run cmscan (Rfam annotation)
-    cmscan.run(ctx)
+    #cmscan
+    cmscan_done_flag = ctx.artifact_exists_or_skip("cmscan_done")
+    if not cmscan_done_flag:
+        cmscan.run(ctx, rfam_cm=rfam_cm, rfam_clanin=rfam_clanin)
+        ctx.register("cmscan_done", True)
 
-    # Analyse CMSCAN output and extract top hits
-    cm_analyse.run(ctx)
+    #cmanalyse
+    cm_analyse_done_flag = ctx.artifact_exists_or_skip("cm_top_hits")
+    if not cm_analyse_done_flag:
+        cm_analyse.run(ctx)
+        ctx.register("cm_top_hits_done", True)
 
-    # Build combined SSU FASTA for downstream steps
-    combined_file = ctx.artifact("combined_SSU", "cm", ".fasta")
-    n_ssu = build_combined_ssu(cm_out, assembly_fasta, combined_file)
-    if n_ssu == 0:
-        print(f"[WARN] No SSU sequences found, downstream DECIPHER output may be empty.")
-
-    ctx.register("combined_SSU", combined_file)
+    #combined SSU
+    combined_done_flag = ctx.artifact_exists_or_skip("combined_SSU")
+    if not combined_done_flag:
+        n_ssu = build_combined_ssu(cm_out, assembly_fasta, combined_file)
+        if n_ssu == 0:
+            ctx.log("WARN: No SSU sequences found, downstream DECIPHER output may be empty.")

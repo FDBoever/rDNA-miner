@@ -5,25 +5,30 @@ message("-- Loading packages")
 suppressPackageStartupMessages(library('DECIPHER'))
 #suppressPackageStartupMessages(library('ensembleTax'))
 suppressPackageStartupMessages(library('Biostrings'))
+suppressPackageStartupMessages(library('dplyr'))
+
+args <- commandArgs(trailingOnly = TRUE)
 
 out_dir <- if (length(args) >= 5 && nchar(args[5]) > 0 && args[5] != "None") args[5] else getwd()
 if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Default paths
+# Default paths (only used if no CLI args)
 pr2_default   <- "./db/pr2/pr2_version_5.0.0_SSU.decipher.trained.rds"
 silva_default <- "./db/silva/SILVA_SSU_r138_2019.RData"
 
-# If user gave a 3rd/4th arg, check whether it's != "None"
-if (length(args) >= 4 && args[3] != "None") {
-  pr2_training <- args[3]
-} else {
-  pr2_training <- pr2_default
-}
+# Use CLI args if provided, otherwise default
+pr2_training <- if (length(args) >= 4 && args[3] != "None") args[3] else pr2_default
+silva_training <- if (length(args) >= 5 && args[4] != "None") args[4] else silva_default
 
-if (length(args) >= 5 && args[4] != "None") {
-  silva_training <- args[4]
+message("-- Loading trainingset")
+if (args[2] == "pr2") {
+  message("    + ", pr2_training)
+  trainingSet <- readRDS(pr2_training)
+} else if (args[2] == "silva") {
+  message("    + ", silva_training)
+  load(silva_training)
 } else {
-  silva_training <- silva_default
+  stop("args[2] must be 'pr2' or 'silva'")
 }
 
 message("-- Loading trainingset")
