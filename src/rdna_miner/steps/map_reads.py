@@ -6,7 +6,10 @@ def run(ctx):
     assembly_fasta = ctx.require("assembly")
     rdna_reads = ctx.require("rdna_reads")
     mapping_file = ctx.artifact("mapping", "mapping", ".tsv")
-    if ctx.exists("mapping"):
+
+    # Skip if artifact already exists
+    if ctx.artifact_exists_or_skip("mapping"):
+        ctx.log("Mapping already exists — skipping step")
         return
 
     platform = getattr(ctx, "platform", "ont")

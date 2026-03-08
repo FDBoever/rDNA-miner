@@ -1,6 +1,7 @@
 import os
 from Bio import SeqIO
 from rdna_miner.steps import cmscan, cm_analyse
+from rdna_miner.steps import plot_contigs
 
 import glob
 
@@ -87,6 +88,12 @@ def run(ctx):
     if not cm_analyse_done_flag:
         cm_analyse.run(ctx)
         ctx.register("cm_top_hits_done", True)
+
+    # contig plots
+    plots_done_flag = ctx.artifact_exists_or_skip("contig_plots")
+    if not plots_done_flag:
+        plot_contigs.run(ctx)
+        ctx.register("contig_plots_done", True)
 
     #combined SSU
     combined_done_flag = ctx.artifact_exists_or_skip("combined_SSU")

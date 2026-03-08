@@ -74,11 +74,25 @@ def run(ctx):
 
     tblout = ctx.require("cmscan_tblout")
     assembly_fasta = ctx.require("assembly")
-    cm_out = ctx.require("cm_out")
+    cm_out = Path(ctx.require("cm_out"))  # this points to ./outputdir/cm/
+
+    cm_filtered = ctx.artifact("cm_filtered", "cm", ".tsv")
+
+    if ctx.artifact_exists_or_skip("cm_filtered"):
+        return
 
     df = read_cmscan(tblout)
+    ctx.log(f"cmscan rows parsed: {len(df)}")
+
     overlaps = detect_overlap(df)
     top_hits_df = top_hit(overlaps)
+    
+    ctx.log(f"Top hits after filtering: {len(top_hits_df)}")
+    ctx.log(f"cmscan dir: {cm_out}")
+
+    top_hits_df.to_csv(cm_filtered, sep="\t", index=False)
+    top_hits_df = top_hits_df.sort_values(["query_name", "seq_from"])
+    ctx.register("cm_filtered", cm_filtered)
 
     extract_top_hits(top_hits_df, assembly_fasta, cm_out)
 

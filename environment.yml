@@ -12,6 +12,7 @@ dependencies:
   - pandas
   - biopython
   - numpy
+  - matplotlib
 
   # bioinf
   - barrnap
@@ -24,6 +25,7 @@ dependencies:
   - r-base
   - bioconductor-decipher
   - r-dplyr
+  - r-tidyr
   #- r-data.table
 
   #utils
