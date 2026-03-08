@@ -1,26 +1,8 @@
 # rDNA-miner
 Extract, assemble and classify rDNA from long reads
 
-## Quickstart
-
-1. **install required databases (if not already avialable on your system)**
-
-```bash
-rdna-miner db install all --db-dir ~/.rdna-miner/db
-```
-
-2. **Run pipeline**
-
-```bash
-rdna-miner run \
-  --input input.fasta \
-  --out-dir ./rDNA-out \
-  --db-dir ~/.rdna-miner/db \
-  --threads 4 \
-  --platform pacbio
-```
-
 ## Install 
+
 Clone this repository and enter the directory
 
 ```bash
@@ -28,7 +10,7 @@ git clone <repo-url>
 cd rDNA-miner
 ```
 
-Install a fresh conda environment using the provided iml
+Install a fresh conda environment using the provided yml file
 
 ```bash
 conda env create -f environment.yml
@@ -55,6 +37,25 @@ flye --help
 minimap2 --help
 samtools --help
 Rscript --version
+```
+
+## Quickstart
+
+1. **install required databases (if not already avialable on your system)**
+
+```bash
+rdna-miner db install all --db-dir ~/.rdna-miner/db
+```
+
+2. **Run pipeline**
+
+```bash
+rdna-miner run \
+  --input input.fasta \
+  --out-dir ./rDNA-out \
+  --db-dir ~/.rdna-miner/db \
+  --threads 4 \
+  --platform pacbio
 ```
 
 ## Usage
@@ -96,18 +97,31 @@ In case rfam/pr2/silva are already on your system, please point to them.
 |--------|---------|-------------|
 | --threads, -t | 4 | Number of threads to use. |
 | --platform, -p | auto | Sequencing platform (`pacbio`, `nanopore`, `auto`). |
-| --force, -f | False | Overwr
+| --force, -f | False | Overwrite existing files |
 
 **example**
 
 ```bash
 rdna-miner run \
-  --input bi-comm2_5x.fasta \
-  --out-dir ./bicom-out-rdna \
+  --input sample.fasta \
+  --out-dir ./sample-out-rdna \
   --db-dir ~/.rdna-miner/db \
   --threads 8 \
   --platform pacbio \
   --force
+```
+
+or specifying local paths to databases manually
+
+```bash
+rdna-miner run \
+  --input sample.fasta \
+  --out-dir ./sample-out-rdna \
+  --rfam-db /custom_location/rfam \
+  --pr2-db /custom_location/pr2 \
+  --silva-db /custom_location/silva \
+  --threads 6 \
+  --platform nanopore
 ```
 
 ---
