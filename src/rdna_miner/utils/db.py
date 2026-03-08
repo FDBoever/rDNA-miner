@@ -18,7 +18,7 @@ class DatabaseManager:
 
     DEFAULT_BASE = Path.home() / ".rdna-miner" / "db"
 
-    # Register expected files for each database type
+    # register expected files for each database type
     DATABASE_FILES = {
         "rfam": ["Rfam.cm", "Rfam.clanin"],
         "silva": ["SILVA_SSU_*.RData"],
@@ -40,10 +40,7 @@ class DatabaseManager:
             else:
                 self.base_dir = self.DEFAULT_BASE
 
-        # Keep resolved db paths per type
         self.db_paths = {}
-
-        # Store per-db overrides
         self._overrides = {}        
     
     def override_db(self, db_type: str, path: str):
@@ -88,7 +85,6 @@ class DatabaseManager:
                 f" 2. Point to an existing database using --{db_type}-db"
             )
 
-        # return the resolved files, not just the dir
         return resolved_files if len(resolved_files) > 1 else resolved_files[0]
 
     def list_registered_dbs(self):

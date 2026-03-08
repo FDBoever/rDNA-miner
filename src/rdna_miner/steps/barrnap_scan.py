@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from rdna_miner.workflow.context import Context
 from rdna_miner.utils.cmd import run_command

@@ -6,7 +6,6 @@ def run(ctx):
     rdna_reads = ctx.require("rdna_reads")
     mapping_file = ctx.artifact("mapping", "mapping", ".tsv")
 
-    # Skip if artifact already exists
     if ctx.artifact_exists_or_skip("mapping"):
         ctx.log("Mapping already exists — skipping step")
         return

@@ -6,13 +6,10 @@ from Bio import SeqIO
 import hashlib
 import matplotlib.patches as mpatches
 
-# Optional categorical palette for main feature types
-FEATURE_PALETTE = {
-    "SSU": "#1f77b4",   # blue
-    "LSU": "#ff7f0e",   # orange
-    "tRNA": "#2ca02c",  # green
-    "Intron": "#d62728" # red
-}
+FEATURE_PALETTE = {"SSU": "#1f77b4",
+                   "LSU": "#ff7f0e",
+                   "tRNA": "#2ca02c",
+                   "Intron": "#d62728"}
 
 def _feature_color(feature: str):
     """
@@ -37,16 +34,16 @@ def plot_contigs(tsv_file, fasta_file, out_pdf):
 
     df = pd.read_csv(tsv_file, sep="\t")
 
-    # Contig lengths
+    # contig lengths
     contig_lengths = {rec.id: len(rec.seq) for rec in SeqIO.parse(fasta_file, "fasta")}
     contigs = sorted(contig_lengths.keys())
 
-    # Figure setup
+    # figure setup
     fig_height = max(3, len(contigs) * 1.2)
     fig, ax = plt.subplots(figsize=(16, fig_height), dpi=300)
 
     y_positions = {}
-    overlap_offsets = {}  # track feature stacking for each contig
+    overlap_offsets = {}
 
     # draw contig baselines
     for i, contig in enumerate(contigs):
@@ -74,7 +71,7 @@ def plot_contigs(tsv_file, fasta_file, out_pdf):
         width = end - start
         color = _feature_color(feature)
 
-        # Determine vertical stacking to avoid overlap
+        # determine vertical stacking to avoid overlap
         offsets = overlap_offsets[contig]
         y_offset = 0
         for o_start, o_end in offsets:
@@ -84,31 +81,25 @@ def plot_contigs(tsv_file, fasta_file, out_pdf):
 
         y = base_y + y_offset if strand == "+" else base_y - y_offset
 
-        # Draw gene-style arrow
-        arrow = FancyArrow(
-            start if strand == "+" else end,
-            y,
-            width if strand == "+" else -width,
-            0,
-            width=0.15,
-            head_width=0.15,     # same as line width
-            head_length=min(abs(width)*0.1, 50),  # small arrowhead
-            length_includes_head=True,
-            color=color,
-            alpha=0.85
-        )
+        arrow = FancyArrow(start if strand == "+" else end,
+                           y,
+                           width if strand == "+" else -width,
+                           0,
+                           width=0.15,
+                           head_width=0.15,
+                           head_length=min(abs(width)*0.1, 50),
+                           length_includes_head=True,
+                           color=color,
+                           alpha=0.85)
         ax.add_patch(arrow)
 
-        # Label above arrow
         label_pos = (start + end) / 2
         label_y = y + 0.35 if strand == "+" else y - 0.35
         ax.text(label_pos, label_y, feature, fontsize=7, ha="center", rotation=45)
 
-    # Legend
     legend_patches = [mpatches.Patch(color=color, label=feat) for feat, color in FEATURE_PALETTE.items()]
     ax.legend(handles=legend_patches, bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=8)
 
-    # Formatting
     ax.set_xlabel("Position (bp)")
     ax.set_yticks([])
     ax.set_title("rDNA Miner: Contig Feature Map")

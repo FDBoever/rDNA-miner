@@ -6,7 +6,6 @@ from rdna_miner.steps import plot_contigs
 import glob
 
 def build_combined_ssu(cm_out, assembly_fasta, combined_file):
-    # 1) Try FASTA outputs
     candidates = []
     for pat in ("*SSU*", "*ssu*"):
         candidates.extend(glob.glob(os.path.join(cm_out, pat)))
@@ -19,7 +18,6 @@ def build_combined_ssu(cm_out, assembly_fasta, combined_file):
                     out.write(fh.read())
         return sum(1 for line in open(combined_file) if line.startswith(">"))
 
-    # 2) Fallback: parse tblout
     tblout = os.path.join(cm_out, "assembly.cmscan.tblout")
     if not os.path.exists(tblout):
         return 0
@@ -55,15 +53,12 @@ def build_combined_ssu(cm_out, assembly_fasta, combined_file):
 
 
 def run(ctx):
-    # Get resolved Rfam database files via DatabaseManager
     rfam_files = ctx.db_manager.get_db("rfam")
-    # get_db now returns a list of resolved files (CM and CLANIN)
+
     if isinstance(rfam_files, list):
-        # pick CM and CLANIN based on suffix
         rfam_cm = next(f for f in rfam_files if f.suffix == ".cm")
         rfam_clanin = next(f for f in rfam_files if "clanin" in f.name.lower())
     else:
-        # fallback if single file returned (shouldn't happen for Rfam)
         raise RuntimeError(f"Unexpected single file returned for Rfam database: {rfam_files}")
 
     assembly_fasta = ctx.require("assembly")

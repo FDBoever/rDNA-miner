@@ -14,7 +14,6 @@ def run(ctx):
     outdir = ctx.output_dir / "flye"
     outdir.mkdir(parents=True, exist_ok=True)
 
-    # platform-aware
     platform = getattr(ctx, "platform", "ont")
     flye_mode = "--nano-raw" if platform == "ont" else "--pacbio-raw"
 

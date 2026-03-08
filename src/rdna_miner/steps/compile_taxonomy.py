@@ -14,7 +14,7 @@ def extract_genus_and_type(taxon_long: str):
     if len(parts) < 2:
         return ("Unknown", "nuclear")
     
-    genus_part = parts[-2]  # second-to-last
+    genus_part = parts[-2]
     if ":" in genus_part:
         genus, origin_type = genus_part.split(":", 1)
     else:
@@ -27,10 +27,8 @@ def plot_genus_abundance(df: pd.DataFrame, out_pdf: Path, top_n=20):
     """
     Plot total read abundances per genus, stacked by origin_type.
     """
-    # Group by genus and origin type
     counts = df.groupby(['genus', 'origin_type']).size().unstack(fill_value=0)
 
-    # Collapse small genera into "Other"
     total_counts = counts.sum(axis=1)
     if len(total_counts) > top_n:
         top_genera = total_counts.nlargest(top_n).index
@@ -41,14 +39,11 @@ def plot_genus_abundance(df: pd.DataFrame, out_pdf: Path, top_n=20):
 
     counts = counts.sort_values(total_counts.name if total_counts.name else counts.columns[0])
 
-    # Plot stacked horizontal bar
-    counts.plot(
-        kind='barh',
-        stacked=True,
-        figsize=(10, max(4, 0.4 * len(counts))),
-        color={"nuclear":"skyblue", "mito":"orange", "plastid":"green"},
-        edgecolor="black"
-    )
+    counts.plot(kind='barh',
+                stacked=True,
+                figsize=(10, max(4, 0.4 * len(counts))),
+                color={"nuclear":"skyblue", "mito":"orange", "plastid":"green"},
+                edgecolor="black")
 
     plt.xlabel("Number of reads")
     plt.ylabel("Genus")
@@ -86,16 +81,15 @@ def run(ctx):
         .dropna(subset=['taxon_long'])
     )
 
-    # Extract genus and origin type
+    # extract genus and origin type
     df_annotated_reads[['genus', 'origin_type']] = df_annotated_reads['taxon_long'].apply(
         lambda x: pd.Series(extract_genus_and_type(x))
     )
 
-    # Save annotated reads
     df_annotated_reads.to_csv(out_file, sep="\t", index=False)
     ctx.register("taxa_ssu_reads", out_file)
 
-    # Generate genus abundance plot
+    # generate abundance plot
     pdf_out = Path(ctx.require("cm_out")) / "genus_abundance.pdf"
     plot_genus_abundance(df_annotated_reads, pdf_out)
     ctx.log(f"Genus abundance plot written to {pdf_out}")

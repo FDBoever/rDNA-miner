@@ -12,6 +12,7 @@ def extract_rDNA_read_ids(gff_files):
                 read_ids.add(fields[0].strip())  # strip any stray whitespace
     return read_ids
 
+
 def filter_fasta(input_fasta, output_fasta, read_ids):
     count = 0
     with open(output_fasta, "w") as out_f:
@@ -21,10 +22,9 @@ def filter_fasta(input_fasta, output_fasta, read_ids):
                 count += 1
     return count
 
+
 def run(ctx):
     filtered = ctx.artifact("rdna_reads", "reads", ".fasta")
-    #if ctx.exists("rdna_reads"):
-    #    return
     
     if ctx.artifact_exists_or_skip("rdna_reads"):
         return
