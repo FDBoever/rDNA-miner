@@ -161,9 +161,9 @@ rdna-miner db status [--db-dir <path>]
 Displays which databases are installed and which are missing.
 
 
-## Acknowledgements
+## References
 
-rDNA-miner relies on a number of bioinformatics tools and databases. If you use rDNA-miner in your, please consider citing these tools where appropriate:
+rDNA-miner relies on a number of bioinformatics tools and databases. If you use rDNA-miner, please consider citing these tools where appropriate:
 
 | Tool | Purpose                                       | Citation / URL                                        |
 | --------------- | --------------------------------------------- | ----------------------------------------------------- |
