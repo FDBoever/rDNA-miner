@@ -58,7 +58,6 @@ def plot_genus_abundance(df: pd.DataFrame, out_pdf: Path, top_n=20):
 
 
 def run(ctx):
-    ctx.log_step("Compile taxonomy assignments")
     mapping_file = ctx.require("mapping")
     decipher_file = os.path.join(ctx.output_dir, "decipher_pr2.tsv")
     out_file = ctx.artifact("taxa_ssu_reads", "taxonomy", ".tsv")

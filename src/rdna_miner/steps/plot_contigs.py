@@ -122,7 +122,6 @@ def plot_contigs(tsv_file, fasta_file, out_pdf):
 
 def run(ctx):
     ctx.log_step("Plot contig feature map")
-
     cm_hits = ctx.require("cm_top_hits")
     assembly = ctx.require("assembly")
 

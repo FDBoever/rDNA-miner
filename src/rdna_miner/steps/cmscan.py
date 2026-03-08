@@ -35,8 +35,6 @@ def run(ctx, rfam_cm: Path, rfam_clanin: Path):
     Run cmscan on the rDNA assembly.
     Requires explicit paths to Rfam database files.
     """
-    ctx.log_step("Run cmscan (Rfam annotation)")
-
     assembly_fasta = ctx.require("assembly")
     cm_out = ctx.artifact("cm_out", "cm", "")
     final_tblout = ctx.artifact("cmscan_tblout", "cm", ".tblout")

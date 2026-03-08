@@ -4,6 +4,12 @@ import os
 from pathlib import Path
 from glob import glob
 
+import urllib.request
+import gzip
+import shutil
+
+from rdna_miner.utils.db_registry import DATABASES
+
 class DatabaseManager:
     """
     Resolve and verify required bioinformatic databases.
@@ -88,3 +94,53 @@ class DatabaseManager:
     def list_registered_dbs(self):
         """Return database types known to the system."""
         return list(self.DATABASE_FILES.keys())
+    
+
+    def install(self, db_type: str, force: bool = False):
+
+        if db_type not in DATABASES:
+            raise ValueError(f"Unknown database: {db_type}")
+
+        spec = DATABASES[db_type]
+
+        target_dir = self.base_dir / db_type
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        filename = spec.url.split("/")[-1]
+        download_path = target_dir / filename
+
+        if download_path.exists() and not force:
+            print(f"{db_type} already downloaded: {download_path}")
+            return
+
+        print(f"Downloading {db_type} database...")
+        urllib.request.urlretrieve(spec.url, download_path)
+
+        if spec.compressed:
+            print("decompressing...")
+            out_file = target_dir / filename.replace(".gz", "")
+
+            with gzip.open(download_path, "rb") as f_in:
+                with open(out_file, "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
+            download_path.unlink()
+
+
+    def status(self):
+        results = {}
+
+        for db_type in DATABASES:
+            db_dir = self.base_dir / db_type
+            installed = True
+
+            if not db_dir.exists():
+                installed = False
+            else:
+                for pattern in DATABASES[db_type].files:
+                    if not list(db_dir.glob(pattern)):
+                        installed = False
+                        break
+
+            results[db_type] = installed
+        return results

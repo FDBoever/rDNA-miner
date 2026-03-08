@@ -14,8 +14,6 @@ def gff_has_records(gff_file: Path) -> bool:
     return False
 
 def run(ctx):
-    ctx.log_step("Run Barrnap")
-
     bac_gff = ctx.artifact("barrnap_bac", "barrnap", ".gff")
     euk_gff = ctx.artifact("barrnap_euk", "barrnap", ".gff")
     combined_gff = ctx.artifact("barrnap_combined", "barrnap", ".gff")

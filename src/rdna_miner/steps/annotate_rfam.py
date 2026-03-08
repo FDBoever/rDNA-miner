@@ -55,8 +55,6 @@ def build_combined_ssu(cm_out, assembly_fasta, combined_file):
 
 
 def run(ctx):
-    ctx.log_step("Annotate rDNA operons with Rfam/CMSCAN")
-
     # Get resolved Rfam database files via DatabaseManager
     rfam_files = ctx.db_manager.get_db("rfam")
     # get_db now returns a list of resolved files (CM and CLANIN)

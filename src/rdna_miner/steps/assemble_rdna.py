@@ -2,9 +2,6 @@ import os
 from rdna_miner.utils.cmd import run_command
 
 def run(ctx):
-    ctx.log_step("Assemble rDNA reads with Flye")
-
-
     rdna_reads = ctx.require("rdna_reads")
     
     outdir = ctx.output_dir / "flye"

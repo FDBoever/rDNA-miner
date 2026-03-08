@@ -5,6 +5,7 @@ from rdna_miner.steps import (barrnap_scan,
                               taxonomy_decipher,
                               map_reads,
                               compile_taxonomy,)
+from rdna_miner.utils.logging_utils import section, info, warn
 
 
 def build_pipeline():
@@ -14,22 +15,23 @@ def build_pipeline():
     """
 
     return [
-        barrnap_scan.run,
-        filter_rdna_reads.run,
-        assemble_rdna.run,
-        annotate_rfam.run,
-        taxonomy_decipher.run,
-        map_reads.run,
-        compile_taxonomy.run,
+        (barrnap_scan.run, "Run Barrnap"),
+        (filter_rdna_reads.run, "Filter putative rDNA reads"),
+        (assemble_rdna.run, "Assemble rDNA reads with Flye"),
+        (annotate_rfam.run, "Annotate rDNA operons with Rfam/cmscan"),
+        (taxonomy_decipher.run, "Assign taxonomy with DECIPHER"),
+        (map_reads.run, "Map reads to rDNA assembly"),
+        (compile_taxonomy.run, "Complete read-level taxonomy assignment" ),
     ]
-
 
 def run_pipeline(ctx):
     pipeline = build_pipeline()
+    total_steps = len(pipeline)
 
-    for step in pipeline:
+    for i, (step_func, step_name) in enumerate(pipeline, start=1):
         if ctx.exists("pipeline_terminated_early"):
             return
-        step(ctx)
-    
+        section(f"[{i}/{total_steps}] {step_name}")
+        step_func(ctx)
+
     ctx.report_artifacts()

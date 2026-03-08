@@ -70,8 +70,6 @@ def extract_top_hits(df, fasta_file, output_dir):
         SeqIO.write(records, output_dir / f"extracted_sequences_{target_name}.fasta", "fasta")
 
 def run(ctx):
-    ctx.log_step("Analyse cmscan output and extract top hits")
-
     tblout = ctx.require("cmscan_tblout")
     assembly_fasta = ctx.require("assembly")
     cm_out = Path(ctx.require("cm_out"))  # this points to ./outputdir/cm/

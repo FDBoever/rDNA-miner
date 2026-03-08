@@ -2,7 +2,6 @@ import os
 from rdna_miner.utils.cmd import run_command
 
 def run(ctx):
-    ctx.log_step("Map reads to rDNA assembly")
     assembly_fasta = ctx.require("assembly")
     rdna_reads = ctx.require("rdna_reads")
     mapping_file = ctx.artifact("mapping", "mapping", ".tsv")

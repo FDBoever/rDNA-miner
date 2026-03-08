@@ -140,19 +140,3 @@ class Context:
                     print(f"    - {p}")
             else:
                 print(f"  {name}: {path}")
-
-
-# ---------------- Database Context ----------------
-
-class DBContext:
-    def __init__(self, db_path: Path):
-        self.output_dir = db_path.parent
-        self.artifacts: Dict[str, object] = {"database": db_path}
-
-    def register(self, name: str, value):
-        self.artifacts[name] = value
-
-    def get(self, name: str):
-        if name not in self.artifacts:
-            raise ValueError(f"Artifact '{name}' not registered.")
-        return self.artifacts[name]
