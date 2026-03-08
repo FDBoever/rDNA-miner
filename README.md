@@ -159,3 +159,28 @@ rdna-miner db status [--db-dir <path>]
 ```
 
 Displays which databases are installed and which are missing.
+
+
+## Acknowledgements
+
+rDNA-miner relies on a number of bioinformatics tools and databases. If you use rDNA-miner in your, please consider citing these tools where appropriate:
+
+| Tool | Purpose                                       | Citation / URL                                        |
+| --------------- | --------------------------------------------- | ----------------------------------------------------- |
+| **barrnap**     | rRNA prediction from genome sequences         | [Barrnap GitHub](https://github.com/tseemann/barrnap) |
+| **flye**        | Long-read genome assembler                    | Kolmogorov et al., *Nat Biotechnol* 2019              |
+| **minimap2**    | Sequence mapping / alignment                  | Li, *Bioinformatics*, 2018                            |
+| **samtools**    | Sequence alignment processing                 | Li et al., *Bioinformatics*, 2009                     |
+| **infernal**    | RNA homology searches                         | Nawrocki & Eddy, *Bioinformatics*, 2013               |
+| **DECIPHER**    | Taxonomic assignment / sequence analysis in R | Wright, *Bioinformatics*, 2016                        |
+| **seqkit**      | FASTA/Q processing toolkit                    | Shen et al., *PLoS ONE*, 2016                         |
+| **pigz**        | Parallel gzip compression                     | [pigz GitHub](https://github.com/madler/pigz)         |
+
+
+Databases used:
+
+| Database      | Purpose                              | Citation / URL                                                                     |
+| ------------- | ------------------------------------ | ---------------------------------------------------------------------------------- |
+| **PR2**       | Protist Ribosomal Reference database | Guillou et al., *Nucleic Acids Res*, 2013; [PR2 Website](https://pr2-database.org) |
+| **SILVA SSU** | Ribosomal RNA reference database     | Quast et al., *Nucleic Acids Res*, 2013; [SILVA Website](https://www.arb-silva.de) |
+| **Rfam**      | RNA family database                  | Kalvari et al., *Nucleic Acids Res*, 2018; [Rfam Website](https://rfam.org)        |
