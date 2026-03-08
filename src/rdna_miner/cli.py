@@ -4,6 +4,7 @@ from pathlib import Path
 from rdna_miner.workflow.context import Context
 from rdna_miner.pipeline import run_pipeline
 from rdna_miner.utils.db import DatabaseManager
+from rdna_miner.utils.logging_utils import section, info, warn
 
 app = typer.Typer(help="rDNA-miner: extract, assemble, and classify rDNA from long reads")
 
@@ -23,6 +24,12 @@ def run(
     """
     Run the full rDNA-miner pipeline.
     """
+    print("-" * 70)
+    section("Starting rDNA-miner...")
+    print("-" * 70)
+
+    info("loading packages")
+
     # Initialize context
     ctx = Context(input_fasta, output_dir, force=force)
 
@@ -40,6 +47,10 @@ def run(
         ctx.db_manager.override_db("silva", silva_db)
     
     run_pipeline(ctx)
+    
+    print("-" * 70)
+    section("Done.")
+    print("-" * 70)
 
 
 if __name__ == "__main__":

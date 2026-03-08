@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, Union, List
 import logging
+from rdna_miner.utils.logging_utils import section, info, warn
 
 from rdna_miner.utils.fasta import load_fasta_or_convert
 
@@ -110,17 +111,16 @@ class Context:
 
         exists = self.exists(name)
         if exists:
-            self.logger.info(f"Skipping '{name}' (artifact exists: {self.artifacts[name]})")
+            info(f"Skipping '{name}' (artifact exists: {self.artifacts[name]})")
         return exists
 
     # ---------------- Logging ----------------
 
     def log_step(self, name: str):
-        self.logger.info("")
-        self.logger.info(f"========== {name} ==========")
+        section(name)
 
     def log(self, message: str):
-        self.logger.info(message)
+        info(message)
 
     # ---------------- Pipeline Helpers ----------------
 
@@ -128,6 +128,18 @@ class Context:
         """Set a flag to terminate the pipeline early and log reason."""
         self.log(f"Pipeline terminated early: {reason}")
         self.register("pipeline_terminated_early", True)
+
+    def report_artifacts(self):
+        """Print a nicely formatted summary of all registered artifacts."""
+        print("\n" + "-" * 70)
+        print("Generated output:")
+        for name, path in self.artifacts.items():
+            if isinstance(path, list):
+                print(f"  {name}:")
+                for p in path:
+                    print(f"    - {p}")
+            else:
+                print(f"  {name}: {path}")
 
 
 # ---------------- Database Context ----------------

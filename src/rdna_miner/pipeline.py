@@ -31,3 +31,5 @@ def run_pipeline(ctx):
         if ctx.exists("pipeline_terminated_early"):
             return
         step(ctx)
+    
+    ctx.report_artifacts()
