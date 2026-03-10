@@ -44,6 +44,18 @@ Rscript --version
 1. **install required databases (if not already avialable on your system)**
 
 ```bash
+rdna-miner db install all
+```
+
+pr2 only
+
+```bash
+rdna-miner db install pr2
+```
+
+or with speficying a location
+
+```bash
 rdna-miner db install all --db-dir ~/.rdna-miner/db
 ```
 

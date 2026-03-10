@@ -1,5 +1,4 @@
 # src/rdna_miner/utils/db.py
-
 import os
 from pathlib import Path
 from glob import glob
@@ -7,8 +6,11 @@ from glob import glob
 import urllib.request
 import gzip
 import shutil
+import gdown
+import subprocess
 
 from rdna_miner.utils.db_registry import DATABASES
+from rdna_miner.utils.logging_utils import section, info, warn
 
 class DatabaseManager:
     """
@@ -87,13 +89,13 @@ class DatabaseManager:
 
         return resolved_files if len(resolved_files) > 1 else resolved_files[0]
 
+
     def list_registered_dbs(self):
         """Return database types known to the system."""
         return list(self.DATABASE_FILES.keys())
     
 
     def install(self, db_type: str, force: bool = False):
-
         if db_type not in DATABASES:
             raise ValueError(f"Unknown database: {db_type}")
 
@@ -102,25 +104,33 @@ class DatabaseManager:
         target_dir = self.base_dir / db_type
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        filename = spec.url.split("/")[-1]
-        download_path = target_dir / filename
+        for download in spec.downloads:
+            download_path = target_dir / download.filename
 
-        if download_path.exists() and not force:
-            print(f"{db_type} already downloaded: {download_path}")
-            return
+            if download_path.exists() and not force:
+                info(f"{download.filename} already exists")
+                continue
 
-        print(f"Downloading {db_type} database...")
-        urllib.request.urlretrieve(spec.url, download_path)
+            info(f"Downloading {download.filename}")
+            if download.source == "http":
+                urllib.request.urlretrieve(download.url, download_path)
+            elif download.source == "gdrive":
+                gdown.download(id=download.url, output=str(download_path), quiet=False)
+            else:
+                raise RuntimeError(f"Unknown download source: {download.source}")
 
-        if spec.compressed:
-            print("decompressing...")
-            out_file = target_dir / filename.replace(".gz", "")
+            if download.compressed:
+                info(f"Decompressing {download.filename}")
+                out_file = target_dir / download.filename.replace(".gz", "")
 
-            with gzip.open(download_path, "rb") as f_in:
-                with open(out_file, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
+                with gzip.open(download_path, "rb") as f_in:
+                    with open(out_file, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
 
-            download_path.unlink()
+                download_path.unlink()
+        
+        if db_type == "rfam":
+            self._index_rfam(target_dir, force=force)        
 
 
     def status(self):
@@ -140,3 +150,40 @@ class DatabaseManager:
 
             results[db_type] = installed
         return results
+
+
+    def _index_rfam(self, rfam_dir: Path, force: bool = False):
+        """
+        Run Infernal cmpress on Rfam.cm.
+        Removes old indices if necessary.
+        """
+        cm_file = rfam_dir / "Rfam.cm"
+
+        if not cm_file.exists():
+            raise RuntimeError(f"Rfam.cm not found in {rfam_dir}")
+
+        index_files = list(rfam_dir.glob("Rfam.cm.i*"))
+
+        # If indices exist
+        if index_files:
+            if not force:
+                info("RFAM already indexed")
+                return
+
+            info("Removing existing RFAM indices")
+            for f in index_files:
+                f.unlink()
+
+        info("Indexing Rfam.cm with cmpress")
+        try:
+            subprocess.run(["cmpress", str(cm_file)], check=True)
+
+        except FileNotFoundError:
+            raise RuntimeError(
+                "cmpress not found in PATH. Install Infernal.")
+
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                f"cmpress failed while indexing Rfam.cm\n{e}")
+
+        info("RFAM indexing complete")

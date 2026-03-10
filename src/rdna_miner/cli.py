@@ -101,17 +101,27 @@ def db_install(
     db_dir: Path = typer.Option(None, "--db-dir", "-d", help="Database directory override"),
     force: bool = typer.Option(False, "--force", help="Force re-download")):
 
+    start_time = datetime.datetime.now()
+    print_header(start_time)
+
     manager = DatabaseManager(cli_db_dir=db_dir)
     section("Database installation")
 
     if db == "all":
         for name in manager.list_registered_dbs():
-            info(f"Installing {name}")
+            section(f"Installing {name}")
             manager.install(name, force=force)
     else:
-        info(f"Installing {db}")
+        section(f"Installing {db}")
         manager.install(db, force=force)
-    section("Done.")
+    
+    end_time = datetime.datetime.now()
+    duration = end_time - start_time
+
+    print("-" * 70)
+    print(f"Finished: {end_time.isoformat(timespec='seconds')}")
+    print(f"Total runtime: {format_timedelta(duration)}")
+    print("-" * 70)
 
 
 @db_app.command("status")

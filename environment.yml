@@ -13,6 +13,7 @@ dependencies:
   - biopython
   - numpy
   - matplotlib
+  - gdown
 
   # bioinf
   - barrnap
