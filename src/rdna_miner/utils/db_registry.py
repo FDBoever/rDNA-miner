@@ -29,3 +29,7 @@ DATABASES = {
         compressed=False
     )
 }
+
+
+## Explore the inclusion of EUKRAYOME
+## https://eukaryome.org/
