@@ -94,3 +94,5 @@ def run(ctx):
         n_ssu = build_combined_ssu(cm_out, assembly_fasta, combined_file)
         if n_ssu == 0:
             ctx.log("WARN: No SSU sequences found, downstream DECIPHER output may be empty.")
+        else:
+            ctx.register("combined_SSU", combined_file)
