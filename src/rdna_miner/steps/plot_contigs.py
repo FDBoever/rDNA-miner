@@ -116,7 +116,7 @@ def run(ctx):
     cm_hits = ctx.require("cm_top_hits")
     assembly = ctx.require("assembly")
 
-    out_dir = Path(ctx.require("cm_out"))
+    out_dir = Path(ctx.require("cm_out")).parent
     out_dir.mkdir(parents=True, exist_ok=True)
 
     tsv_path = out_dir / "cm_filtered.tsv"

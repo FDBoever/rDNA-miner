@@ -213,14 +213,14 @@ def run(ctx):
     ctx.register("taxa_ssu_reads", out_file)
 
     # generate abundance plot
-    pdf_out = Path(ctx.require("cm_out")) / "genus_abundance.pdf"
+    pdf_out = Path(mapping_file).parent / "genus_abundance.pdf"
     plot_genus_abundance(df_annotated_reads, pdf_out)
     ctx.log(f"Genus abundance plot written to {pdf_out}")
     ctx.register("genus_abundance_plot", pdf_out)
 
     tax_ranks = ["class", "order", "family", "genus"]
 
-    plot_dir = Path(ctx.require("cm_out"))
+    plot_dir = Path(mapping_file).parent
 
     for rank in tax_ranks:
 

@@ -72,7 +72,7 @@ def extract_top_hits(df, fasta_file, output_dir):
 def run(ctx):
     tblout = ctx.require("cmscan_tblout")
     assembly_fasta = ctx.require("assembly")
-    cm_out = Path(ctx.require("cm_out"))  # this points to ./outputdir/cm/
+    cm_out = Path(ctx.require("cm_out")).parent  # this points to ./outputdir/cm/
 
     cm_filtered = ctx.artifact("cm_filtered", "cm", ".tsv")
 
