@@ -2,11 +2,14 @@ import typer
 from pathlib import Path
 
 from rdna_miner.workflow.context import Context
-from rdna_miner.pipeline import run_pipeline
 from rdna_miner.utils.db import DatabaseManager
 from rdna_miner.utils.logging_utils import section, info, warn
 import platform
 import datetime
+
+from rdna_miner.pipeline import build_long_read_pipeline
+from rdna_miner.pipeline import build_assembly_pipeline
+from rdna_miner.pipeline import run_pipeline
 
 def print_header(start_time):
     from importlib.metadata import version
@@ -42,7 +45,7 @@ def main(ctx: typer.Context):
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
 
-@app.command()
+@app.command("long-read")
 def run(
     input_fasta: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=False, help="Input FASTA file"),
     output_dir: Path = typer.Option(..., "--out-dir", "-o", file_okay=False, dir_okay=True, help="Directory to store output"),
@@ -80,7 +83,8 @@ def run(
     if silva_db:
         ctx.db_manager.override_db("silva", silva_db)
     
-    run_pipeline(ctx)
+    pipeline = build_long_read_pipeline()
+    run_pipeline(ctx, pipeline)
     
     end_time = datetime.datetime.now()
     duration = end_time - start_time
@@ -90,7 +94,55 @@ def run(
     print(f"Total runtime: {format_timedelta(duration)}")
     print("-" * 70)
 
-#---- manage databses ----
+#---------------------------------#
+
+@app.command()
+def assembly(
+    assembly_fasta: Path = typer.Option(..., "--input", "-i", exists=True, help="Input assembly FASTA"),
+    output_dir: Path = typer.Option(..., "--out-dir", "-o", help="Directory to store output"),
+    db_dir: Path = typer.Option(None, "--db-dir", "-d"),
+    rfam_db: Path = typer.Option(None, "--rfam-db"),
+    pr2_db: Path = typer.Option(None, "--pr2-db"),
+    silva_db: Path = typer.Option(None, "--silva-db"),
+    threads: int = typer.Option(4, "--threads", "-t"),
+    force: bool = typer.Option(False, "--force", "-f"),
+):
+    """
+    Run rDNA-miner starting from an assembly.
+    """
+
+    start_time = datetime.datetime.now()
+    print_header(start_time)
+
+    ctx = Context(assembly_fasta, output_dir, force=force)
+    ctx.threads = threads
+    ctx.register("assembly", assembly_fasta)
+
+    ctx.db_manager = DatabaseManager(cli_db_dir=db_dir)
+
+    if rfam_db:
+        ctx.db_manager.override_db("rfam", rfam_db)
+    if pr2_db:
+        ctx.db_manager.override_db("pr2", pr2_db)
+    if silva_db:
+        ctx.db_manager.override_db("silva", silva_db)
+
+    
+    # build assembly pipeline
+    pipeline = build_assembly_pipeline()
+    run_pipeline(ctx, pipeline)
+
+    end_time = datetime.datetime.now()
+    duration = end_time - start_time
+
+    print("-" * 70)
+    print(f"Finished: {end_time.isoformat(timespec='seconds')}")
+    print(f"Total runtime: {format_timedelta(duration)}")
+    print("-" * 70)
+
+#-----------------------------------
+# manage databses
+#-----------------------------------
 
 db_app = typer.Typer(help="manage rDNA-miner databases")
 app.add_typer(db_app, name="db")
