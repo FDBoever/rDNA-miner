@@ -23,3 +23,6 @@ dependencies = [
 
 [project.scripts]
 rdna-miner = "rdna_miner.cli:app"
+
+[tool.setuptools.package-data]
+rdna_miner = ["steps/taxonomy_decipher/*.R"]
